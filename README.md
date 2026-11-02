@@ -1,97 +1,107 @@
-# Connect4Master : Puissance 4 avec IA Avancée
+# Connect4Master
 
-## Présentation du Jeu
-Ce projet est une implémentation du jeu Puissance 4 avec une interface graphique moderne et une intelligence artificielle basée sur l'algorithme Minimax avec élagage alpha-beta. Le jeu propose une expérience de jeu fluide avec des animations et des effets visuels, tout en offrant un défi intéressant grâce à l'IA.
+Puissance 4 contre une IA minimax écrite en Python, qui tourne directement dans le navigateur et montre son raisonnement en direct.
 
-## Technologies Utilisées
-- **Python 3.x** : Langage principal
-- **Pygame** : Bibliothèque pour l'interface graphique
-- **NumPy** : Pour la manipulation efficace des matrices du jeu
-- **Math** : Pour les calculs mathématiques nécessaires à l'IA
+*[English version below](#english)*
 
-## Installation
+![Partie en cours avec le panneau d'analyse de l'IA](docs/screenshot.jpg)
 
-### Création de l'environnement virtuel
-1. Ouvrez un terminal dans le dossier du projet
-2. Créez un environnement virtuel :
+## Fonctionnalités
+
+- **IA Python sans serveur :** `ia.py` s'exécute dans le navigateur grâce à [Pyodide](https://pyodide.org), dans un Web Worker pour que l'interface reste fluide.
+- **Cerveau de l'IA :** la profondeur atteinte, le score de chaque colonne et l'avantage estimé s'affichent pendant qu'elle réfléchit.
+- **Trois niveaux :** 2 coups d'avance, 4 coups d'avance, ou recherche limitée à 4 secondes.
+- **Plateau configurable :** de 5 à 10 lignes et colonnes.
+- **Confort :** animations, version mobile, français et anglais, bilan sauvegardé, jeu au clavier (touches `1` à `9`, flèches, `Échap`).
+
+## Comment fonctionne l'IA
+
+`ia.py` combine plusieurs techniques :
+
+1. **Tactique immédiate :** elle joue un coup gagnant ou bloque une menace directe.
+2. **Minimax avec élagage alpha-bêta :** les colonnes centrales sont explorées en premier pour élaguer davantage.
+3. **Approfondissement itératif :** elle cherche à profondeur 1, puis 2, puis 3, et garde le dernier résultat terminé dans le temps imparti. Elle s'arrête dès que l'issue de la partie est certaine.
+4. **Évaluation heuristique :** chaque fenêtre de quatre cases est notée selon les alignements possibles, avec un bonus pour la colonne centrale.
+
+## Architecture
+
+| Élément | Rôle |
+| --- | --- |
+| `ia.py` | Moteur de l'IA, seule source Python, chargé tel quel par le navigateur |
+| `src/engine.worker.ts` | Charge Pyodide et NumPy, puis appelle `IA_Decision` |
+| `src/engine.ts` | Échanges entre l'interface et le worker |
+| `src/game.ts` | Règles côté interface, pour un coup du joueur instantané |
+| `src/components/` | Écrans, plateau et panneau d'analyse |
+
+Interface réalisée avec React, TypeScript et Vite. Le site est statique : aucun serveur ne fait tourner Python. Pyodide et NumPy sont téléchargés depuis jsDelivr à la première visite, puis restent en cache.
+
+## Lancer le projet
+
 ```bash
-python -m venv venv
+npm install
+npm run dev
 ```
-3. Activez l'environnement virtuel :
-   - Sur Windows :
-   ```bash
-   .\venv\Scripts\activate
-   ```
-   - Sur Linux/Mac :
-   ```bash
-   source venv/bin/activate
-   ```
-4. Installez les dépendances :
+
+## Tests
+
 ```bash
-pip install -r requirements.txt
+npm test
 ```
 
-## Fonctionnalités de l'IA
+```bash
+pip install -r requirements.txt pytest
+pytest tests
+```
 
-### Fonctions Principales
+## Déployer sur Vercel
 
-#### `IA_Decision(board, max_time)`
-- Fonction principale qui détermine le meilleur coup à jouer
-- Utilise une approche itérative avec approfondissement progressif
-- Prend en compte le temps maximum de réflexion
-- Implémente des optimisations comme la variation principale (PV)
+Importez le dépôt dans Vercel : le framework Vite est détecté automatiquement, sans configuration.
 
-#### `minimax(board, depth, alpha, beta, maximizingPlayer, start_time, max_time, pv_move)`
-- Implémente l'algorithme Minimax avec élagage alpha-beta
-- Gère la profondeur de recherche et le temps limite
-- Optimisé avec l'ordre des coups et la variation principale
+## Version d'origine
 
-#### `score_position(board, piece)`
-- Évalue la position actuelle du plateau
-- Attribue des scores basés sur :
-  - Occupation du centre
-  - Alignements horizontaux, verticaux et diagonaux
-  - Menaces et opportunités de victoire
+La première version en Pygame reste disponible avec le tag `v1-pygame`.
 
-#### `evaluate_window(window, piece)`
-- Évalue une fenêtre de 4 cases
-- Attribue des scores selon :
-  - 4 pièces alignées : +100
-  - 3 pièces + 1 vide : +5
-  - 2 pièces + 2 vides : +2
-  - 3 pièces adverses + 1 vide : -4
+---
 
-### Fonctions Utilitaires
+## English
 
-#### `get_valid_locations(board)`
-- Retourne la liste des colonnes où un coup est possible
+Connect Four against a minimax AI written in Python. It runs right in the browser and shows its reasoning live.
 
-#### `is_valid_move(board, col)`
-- Vérifie si un coup est valide dans une colonne donnée
+### Features
 
-#### `get_next_open_row(board, col)`
-- Trouve la première rangée vide dans une colonne
+- **Serverless Python AI:** `ia.py` runs in the browser through [Pyodide](https://pyodide.org), inside a Web Worker so the interface stays smooth.
+- **AI brain:** search depth, the score of each column, and the estimated advantage update while it thinks.
+- **Three levels:** 2 moves ahead, 4 moves ahead, or a search limited to 4 seconds.
+- **Configurable board:** 5 to 10 rows and columns.
+- **Polish:** animations, mobile layout, French and English, saved record, keyboard play (`1` to `9`, arrow keys, `Esc`).
 
-#### `winning_move(board, piece)`
-- Vérifie si un joueur a gagné
-- Examine les alignements horizontaux, verticaux et diagonaux
+### How the AI works
 
-#### `check_winning_move(board, piece)`
-- Vérifie si un coup gagnant est possible
-- Retourne la colonne à jouer si un coup gagnant existe
+1. **Immediate tactics:** it plays a winning move or blocks a direct threat.
+2. **Minimax with alpha-beta pruning:** center columns are explored first to prune more of the tree.
+3. **Iterative deepening:** it searches depth 1, then 2, then 3, and keeps the last result finished in time. It stops as soon as the outcome is certain.
+4. **Heuristic evaluation:** each four-cell window is scored by possible alignments, with a bonus for the center column.
 
-## Paramètres du Jeu
-- Taille du plateau configurable (5-10 lignes, 5-10 colonnes)
-- Temps de réflexion de l'IA ajustable (1-10 secondes)
-- Interface graphique adaptative (plein écran)
+### Run it
 
-## Comment Jouer
-1. Lancez le jeu : `python main.py`
-2. Utilisez le menu principal pour :
-   - Démarrer une partie
-   - Ajuster les paramètres
-   - Quitter le jeu
-3. En jeu :
-   - Cliquez sur une colonne pour placer votre pion
-   - L'IA jouera automatiquement
-   - Utilisez Échap pour retourner au menu principal 
+```bash
+npm install
+npm run dev
+```
+
+### Tests
+
+```bash
+npm test
+```
+
+```bash
+pip install -r requirements.txt pytest
+pytest tests
+```
+
+### Deploy to Vercel
+
+Import the repository into Vercel. The Vite framework is detected automatically, with no configuration.
+
+The original Pygame version is available at the `v1-pygame` tag.
